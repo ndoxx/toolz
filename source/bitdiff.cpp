@@ -144,6 +144,9 @@ int main(int argc, char** argv)
     init_logger();
 
     ap::ArgParse parser("bitdiff", "0.1");
+    parser.set_log_output([](const std::string& str) { KLOG("bitdiff", 1) << str << std::endl; });
+    parser.set_exit_on_special_command(true);
+
     const auto& target =
         parser.add_positional<std::string>("FILE", "File containing classified example binary strings");
     bool success = parser.parse(argc, argv);
@@ -206,7 +209,7 @@ int main(int argc, char** argv)
     {
         std::string cat = categories[ii];
         su::center(cat, int(example_set[0][0].size()) + 4);
-        KLOGR("bitdiff") << WCC(255,100,0) << cat << WCC(0) << std::endl;
+        KLOGR("bitdiff") << WCC(255, 100, 0) << cat << WCC(0) << std::endl;
         const auto& intra_sims = example_set[ii].sims();
         for(size_t jj = 0; jj < example_set[ii].size(); ++jj)
         {

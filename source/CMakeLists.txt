@@ -24,3 +24,5 @@ target_link_libraries(bitdiff
 )
 
 cotire(bitdiff)
+
+install(TARGETS bitdiff DESTINATION bin)
