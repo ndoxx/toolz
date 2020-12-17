@@ -190,9 +190,9 @@ int main(int argc, char** argv)
                        std::function<std::string(const std::string&)> convert) {
         if(format)
         {
-            KLOGR("thext") << label << WCB(0, 153, 0);
+            KLOGR("thext") << label << KB_(0, 153, 0);
         }
-        KLOGR("thext") << convert(input) << WCB(0) << std::endl;
+        KLOGR("thext") << convert(input) << KB_(0) << std::endl;
     };
 
     // Run converters

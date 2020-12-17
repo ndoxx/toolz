@@ -159,7 +159,7 @@ int main(int argc, char** argv)
     if(!fs::exists(filepath))
     {
         KLOGE("bitdiff") << "File does not exist:" << std::endl;
-        KLOGI << WCC('p') << filepath << std::endl;
+        KLOGI << KF_('p') << filepath << std::endl;
     }
 
     size_t current_category = 0;
@@ -209,7 +209,7 @@ int main(int argc, char** argv)
     {
         std::string cat = categories[ii];
         su::center(cat, int(example_set[0][0].size()) + 4);
-        KLOGR("bitdiff") << WCC(255, 100, 0) << cat << WCC(0) << std::endl;
+        KLOGR("bitdiff") << KF_(255, 100, 0) << cat << KC_ << std::endl;
         const auto& intra_sims = example_set[ii].sims();
         for(size_t jj = 0; jj < example_set[ii].size(); ++jj)
         {
@@ -219,19 +219,19 @@ int main(int argc, char** argv)
             {
                 if(inter_sims[kk])
                 {
-                    KLOGR("bitdiff") << WCB(10, 75, 150);
+                    KLOGR("bitdiff") << KB_(10, 75, 150);
                 }
                 else if(intra_sims[kk])
                 {
-                    KLOGR("bitdiff") << WCB(150, 75, 10);
+                    KLOGR("bitdiff") << KB_(150, 75, 10);
                 }
                 else
                 {
-                    KLOGR("bitdiff") << WCB(0);
+                    KLOGR("bitdiff") << KC_;
                 }
                 KLOGR("bitdiff") << ex.str[kk];
             }
-            KLOGR("bitdiff") << WCB(0) << std::endl;
+            KLOGR("bitdiff") << KC_ << std::endl;
         }
     }
 
