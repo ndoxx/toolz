@@ -1,0 +1,12 @@
+black 40403e 7c7b77
+violet 5a3d96 817c9a
+pink e57277 cfa7b2
+darkgreen 335840 6e8c7e
+brown 7e3a31 ae8579
+green 358337 a4d5b3
+lightbrown c13c2a cd9774
+lightblue 2597d2 83b6cb
+yellow fbde3d efe37f
+orange ff7a18 f8b26e
+red f63f36 f1a8a4
+darkblue 2d3e8a 8588b7

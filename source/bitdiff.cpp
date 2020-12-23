@@ -138,9 +138,6 @@ bool Examples::insert(const std::string& str)
 
 int main(int argc, char** argv)
 {
-    (void)argc;
-    (void)argv;
-
     init_logger();
 
     ap::ArgParse parser("bitdiff", "0.1");
