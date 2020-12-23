@@ -1,3 +1,4 @@
+white ffffff ffffff
 black 40403e 7c7b77
 violet 5a3d96 817c9a
 pink e57277 cfa7b2

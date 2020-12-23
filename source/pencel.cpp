@@ -31,6 +31,15 @@ void init_logger()
     KLOGGER(set_backtrace_on_error(false));
 }
 
+void show_error_and_die(ap::ArgParse& parser)
+{
+    for(const auto& msg : parser.get_errors())
+        KLOGW("pencel") << msg << std::endl;
+
+    KLOG("pencel", 1) << parser.usage() << std::endl;
+    exit(0);
+}
+
 struct PencilInfo
 {
     math::argb32_t heavy_trace;
@@ -57,8 +66,12 @@ ColorMatchResult best_match(math::argb32_t color, const std::vector<PencilInfo>&
     for(size_t ii = 0; ii < palette.size(); ++ii)
     {
         const auto& info = palette[ii];
-        float dh = math::cmetric_distance(color, info.heavy_trace);
-        float dl = math::cmetric_distance(color, info.light_trace);
+        // float dh = math::delta_E_cmetric(color, info.heavy_trace);
+        // float dl = math::delta_E_cmetric(color, info.light_trace);
+        float dh = math::delta_E2_CIE76(color, info.heavy_trace);
+        float dl = math::delta_E2_CIE76(color, info.light_trace);
+        // float dh = math::delta_E2_CIE94(color, info.heavy_trace);
+        // float dl = math::delta_E2_CIE94(color, info.light_trace);
         if(dh < result.distance)
             result = {ii, true, dh};
         if(dl < result.distance)
@@ -273,12 +286,68 @@ bool ResampleImage24(uint8_t* src, uint32_t src_width, uint32_t src_height, uint
 }
 } // namespace resampler
 
+void display_raw(const Image& image)
+{
+    KLOGR("pencel") << std::endl;
+    for(unsigned int row = 0; row < image.height; ++row)
+    {
+        for(unsigned int col = 0; col < image.width; ++col)
+        {
+            auto* pixel = BLOCK_OFFSET_RGB24(image.pixels.data(), image.width, col, row);
+            auto value = math::pack_ARGB(pixel[0], pixel[1], pixel[2]);
+            KLOGR("pencel") << KF_(value) << "\u2588\u2588";
+        }
+        KLOGR("pencel") << std::endl;
+    }
+}
+
+void display_palette(const Image& image, const std::vector<PencilInfo>& palette)
+{
+    KLOGR("pencel") << std::endl;
+    for(unsigned int row = 0; row < image.height; ++row)
+    {
+        for(unsigned int col = 0; col < image.width; ++col)
+        {
+            auto* pixel = BLOCK_OFFSET_RGB24(image.pixels.data(), image.width, col, row);
+            auto value = math::pack_ARGB(pixel[0], pixel[1], pixel[2]);
+            auto bm = best_match(value, palette);
+            auto bmc = (bm.heavy) ? palette[bm.index].heavy_trace : palette[bm.index].light_trace;
+            KLOGR("pencel") << KF_(bmc) << "\u2588\u2588";
+        }
+        KLOGR("pencel") << std::endl;
+    }
+}
+
 int main(int argc, char** argv)
 {
-    (void)argc;
-    (void)argv;
-
     init_logger();
+
+    ap::ArgParse parser("pencel", "0.1");
+    parser.set_log_output([](const std::string& str) { KLOG("pencel", 1) << str << std::endl; });
+    parser.set_exit_on_special_command(true);
+    const auto& raw = parser.add_flag('r', "raw", "Display exact image colors.");
+    const auto& source = parser.add_positional<std::string>("FILE", "Input PNG image file.");
+    const auto& outwidth = parser.add_variable<int>('x', "width", "Output width.", 32);
+    const auto& outheight = parser.add_variable<int>('y', "height", "Output height.", 32);
+
+    bool success = parser.parse(argc, argv);
+
+    if(!success)
+        show_error_and_die(parser);
+
+    fs::path imagepath(source());
+    if(!fs::exists(imagepath))
+    {
+        KLOGE("pencel") << "Source file does not exist:" << std::endl;
+        KLOGI << KS_PATH_ << imagepath << std::endl;
+        exit(0);
+    }
+    if(imagepath.extension().string().compare(".png"))
+    {
+        KLOGE("pencel") << "Source file is not a PNG file:" << std::endl;
+        KLOGI << KS_PATH_ << imagepath << std::endl;
+        exit(0);
+    }
 
     // * Import palette
     KLOGN("pencel") << "Importing palette:" << std::endl;
@@ -320,10 +389,10 @@ int main(int argc, char** argv)
     }
 
     // * Load image and resize it
-    unsigned width = 32;
-    unsigned height = 32;
+    unsigned width = unsigned(outwidth());
+    unsigned height = unsigned(outheight());
 
-    auto src = decode_png_file("../data/butterfly.png");
+    auto src = decode_png_file(imagepath);
     Image img;
     img.width = width;
     img.height = height;
@@ -331,20 +400,13 @@ int main(int argc, char** argv)
     resampler::ResampleImage24(src.pixels.data(), src.width, src.height, img.pixels.data(), img.width, img.height,
                                resampler::KernelTypeBilinear);
 
-
-    KLOGR("pencel") << std::endl;
-    for(unsigned int row = 0; row < height; ++row)
+    // * Display image
+    if(raw())
+        display_raw(img);
+    else
     {
-        for(unsigned int col = 0; col < width; ++col)
-        {
-        	auto* pixel = BLOCK_OFFSET_RGB24(img.pixels.data(), img.width, col, row);
-            auto value = math::pack_ARGB(pixel[0],pixel[1],pixel[2]);
-            auto bm = best_match(value, palette);
-            auto bmc = (bm.heavy) ? palette[bm.index].heavy_trace : palette[bm.index].light_trace;
-            KLOGR("pencel") << KF_(bmc) << "HH";
-            // KLOGR("pencel") << KF_(value) << "HH";
-        }
-        KLOGR("pencel") << std::endl;
+        display_raw(img);
+        display_palette(img, palette);
     }
 
     return 0;
