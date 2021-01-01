@@ -192,7 +192,7 @@ int main(int argc, char** argv)
         {
             KLOGR("thext") << label << KB_(0, 153, 0);
         }
-        KLOGR("thext") << convert(input) << KB_(0) << std::endl;
+        KLOGR("thext") << convert(input) << KC_ << std::endl;
     };
 
     // Run converters

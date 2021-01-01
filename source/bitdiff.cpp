@@ -156,7 +156,7 @@ int main(int argc, char** argv)
     if(!fs::exists(filepath))
     {
         KLOGE("bitdiff") << "File does not exist:" << std::endl;
-        KLOGI << KF_('p') << filepath << std::endl;
+        KLOGI << KS_PATH_ << filepath << std::endl;
     }
 
     size_t current_category = 0;
